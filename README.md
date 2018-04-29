@@ -12,8 +12,9 @@ When building an app, run the *android-app.sh* script.
 
 ## Android App Script
 
-In the following examples *<app-name>* will indicate the name of your app,
-e.g. NameOfApp, and *<avd>* will indicate the name of the Android Virtual Device.
+In the following examples *\<app-name\>* will indicate the name of your app,
+e.g. NameOfApp, and *\<avd\>* will indicate the name of the Android Virtual
+Device.
 
 The AVD is determined automatically, as a result, using the AVD option is
 optional. It is determined automatically, by the command:
