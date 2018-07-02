@@ -69,26 +69,31 @@ main()
     local run=$(cli_get "run")
     local uninstall=$(cli_get "uninstall")
 
+    if [ -z "${avd}" ]
+    then
+        avd=$(android_app_get_avd)
+    fi
+
     if [ -n "${help}" ]
     then
         cli_usage
     elif [ -n "${kill}" ]
     then
         android_app_kill
+    elif [ -n "${emulator}" ]
+    then
+        android_app_emulator "${avd}"
     else
         if [ -z "${name}" ]
         then
             print_err "Must specify the name of the app."
             exit ${EXIT_ANDROID_APP_INVALID_APP_NAME}
         fi
+
         if ! android_app_is_app "${name}"
         then
             print_err "Invalid app name '${name}'."
             exit ${EXIT_ANDROID_APP_INVALID_APP_NAME}
-        fi
-        if [ -z "${avd}" ]
-        then
-            avd=$(android_app_get_avd)
         fi
 
         if [ -n "${all}" ]
@@ -100,9 +105,6 @@ main()
         elif [ -n "${clean}" ]
         then
             android_app_clean "${name}"
-        elif [ -n "${emulator}" ]
-        then
-            android_app_emulator "${avd}" "${name}"
         elif [ -n "${install}" ]
         then
             android_app_install "${name}"
@@ -128,7 +130,7 @@ android_app_run_all()
     local name="${1}"
     local avd="${2}"
     android_app_build "${name}" || return $?
-    android_app_emulator "${avd}" "${name}"
+    android_app_emulator "${avd}"
     case $? in
         0)
             if ! android_app_is_emulator_running
@@ -191,11 +193,9 @@ android_app_clean()
 android_app_emulator()
 {
     local avd="${1}"
-    local name="${2}"
-    local log=$(android_app_get_log_cat_filter "${name}")
     echo ":: Running emulator '${avd}'."
     android_app_emulator_verify "${avd}" || return $?
-    emulator -no-boot-anim -netfast -logcat "'${log}'" -avd "${avd}" &
+    emulator -no-boot-anim -no-snapshot-load -netspeed full -netdelay none -netfast -avd "${avd}" &
     return $?
 }
 
@@ -373,19 +373,19 @@ android_app_get_com_name()
     return $?
 }
 
-##
-# Return logcat filter string.
-##
-android_app_get_log_cat_filter()
-{
-    local name="${1}"
-    local log="*:s AndroidRuntime:* System.out:*"
-    if [ -n "${name}" ]
-    then
-        log+=" ${name}:*"
-    fi
-    echo "${log}"
-}
+# ##
+# # Return logcat filter string.
+# ##
+# android_app_get_log_cat_filter()
+# {
+#     local name="${1}"
+#     local log="*:s AndroidRuntime:* System.out:*"
+#     if [ -n "${name}" ]
+#     then
+#         log+=" ${name}:*"
+#     fi
+#     echo "${log}"
+# }
 
 ##
 # Check if the input app name is a valid app.
